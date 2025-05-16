@@ -3,9 +3,8 @@ const verificateurService = require('../services/VerificateurService');
 const express = require('express');
 const VerficateurController = express.Router();
 
-const URL = 'api/verificateur';
 
-router.get(`${URL}/`, async (req, res) => {
+VerficateurController.get(`/`, async (req, res) => {
     try {
         const verificateurs = await verificateurService.getAllVerificateurs();
         res.status(200).json(verificateurs);
@@ -14,7 +13,7 @@ router.get(`${URL}/`, async (req, res) => {
     }
 }
 );
-router.get(`${URL}/:id`, async (req, res) => {
+VerficateurController.get(`/:id`, async (req, res) => {
     try {
         const verificateur = await verificateurService.getVerificateurById(req.params.id);
         res.status(200).json(verificateur);
@@ -23,7 +22,7 @@ router.get(`${URL}/:id`, async (req, res) => {
     }
 }
 );
-router.post(`${URL}/`, async (req, res) => {
+VerficateurController.post(`/`, async (req, res) => {
     try {
         const verificateur = await verificateurService.createVerificateur(req.body);
         res.status(201).json(verificateur);
@@ -32,7 +31,7 @@ router.post(`${URL}/`, async (req, res) => {
     }
 }
 );
-router.put(`${URL}/:id`, async (req, res) => {
+VerficateurController.put(`/:id`, async (req, res) => {
     try {
         const verificateur = await verificateurService.updateVerificateur(req.params.id, req.body);
         res.status(200).json(verificateur);
@@ -41,7 +40,7 @@ router.put(`${URL}/:id`, async (req, res) => {
     }
 }
 );
-router.delete(`${URL}/:id`, async (req, res) => {
+VerficateurController.delete(`/:id`, async (req, res) => {
     try {
         const verificateur = await verificateurService.deleteVerificateur(req.params.id);
         res.status(200).json(verificateur);
@@ -50,7 +49,7 @@ router.delete(`${URL}/:id`, async (req, res) => {
     }
 }
 );
-router.post(`${URL}/auth/login`, async (req, res) => {
+VerficateurController.post(`/auth/login`, async (req, res) => {
     try {
         const { email, password } = req.body;
         const verificateur = await verificateurService.loginVerificateur(email, password);
@@ -63,7 +62,7 @@ router.post(`${URL}/auth/login`, async (req, res) => {
     }
 }
 );
-router.post(`${URL}/auth/register`, async (req, res) => {
+VerficateurController.post(`/auth/register`, async (req, res) => {
     try {
         const verificateur = await verificateurService.createVerificateur(req.body);
         res.status(201).json(verificateur);

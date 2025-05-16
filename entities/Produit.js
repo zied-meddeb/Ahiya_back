@@ -33,7 +33,7 @@ const produitSchema = new Schema({
     },
      imageUrl: {
         type: String, 
-        required: true
+        
     }, 
     status: {
         type: String,       
@@ -43,6 +43,9 @@ const produitSchema = new Schema({
     verified: {
         type: Boolean, 
         default: false
+    },
+    lien_produit: {
+        type: String, 
     },
     createdAt: {
         type: Date, 
@@ -65,7 +68,6 @@ const produitSchema = new Schema({
     checked_by: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'verificateur',
-        required: true
     }
 
    

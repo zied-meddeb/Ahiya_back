@@ -67,6 +67,18 @@ const fournisseurService = {
         } catch (error) {
             throw new Error('Error logging in fournisseur: ' + error.message);
         }
-    }
+    },
+    changePassword: async (id, newPassword) => {
+            try {
+                const fournisseur = await Fournisseur.findByIdAndUpdate(id, { password: newPassword }, { new: true });
+                if (!fournisseur) {
+                    throw new Error('fournisseur not found');
+                }
+                return fournisseur;
+            } catch (error) {
+                throw new Error('Error changing password: ' + error.message);
+            }
+        },
+    
 }
 module.exports = fournisseurService;
