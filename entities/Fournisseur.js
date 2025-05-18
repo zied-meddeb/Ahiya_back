@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { create } = require('./Produit');
 const Schema = mongoose.Schema;
 const fournisseurSchema = new Schema({
     nom: {
@@ -44,15 +43,13 @@ const fournisseurSchema = new Schema({
         type: String,
         required: true
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    isVerified: {
+        type: Boolean,
+        default: false
     },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    }
+    verificationCode: { type: String }
+    
 
-});
+}, { timestamps: true });
 
 module.exports = Fournisseur = mongoose.model('fournisseur', fournisseurSchema);

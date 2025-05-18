@@ -1,6 +1,7 @@
 const CategoryService = require('../services/CategoryService');
 const express = require('express');
 const CategoryController = express.Router();
+const verifyToken = require('../config/middleware');
 
 
 CategoryController.get(`/`, async (req, res) => {
@@ -22,7 +23,7 @@ CategoryController.get(`/:id`, async (req, res) => {
 }
 );
 
-CategoryController.post(`/`, async (req, res) => {
+CategoryController.post(`/`,verifyToken, async (req, res) => {
     try {
         const category = await CategoryService.createCategory(req.body);
         res.status(201).json(category);
@@ -31,7 +32,7 @@ CategoryController.post(`/`, async (req, res) => {
     }
 }
 );
-CategoryController.put(`/:id`, async (req, res) => {
+CategoryController.put(`/:id`,verifyToken, async (req, res) => {
     try {
         const category = await CategoryService.updateCategory(req.params.id, req.body);
         res.status(200).json(category);
@@ -40,7 +41,7 @@ CategoryController.put(`/:id`, async (req, res) => {
     }
 }
 );
-CategoryController.delete(`/:id`, async (req, res) => {
+CategoryController.delete(`/:id`,verifyToken, async (req, res) => {
     try {
         const category = await CategoryService.deleteCategory(req.params.id);
         res.status(200).json(category);

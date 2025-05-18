@@ -47,14 +47,6 @@ const produitSchema = new Schema({
     lien_produit: {
         type: String, 
     },
-    createdAt: {
-        type: Date, 
-        default: Date.now
-    },
-    updatedAt: {
-        type: Date,
-        default: Date.now
-    },
     category: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'category',
@@ -71,6 +63,6 @@ const produitSchema = new Schema({
     }
 
    
-});
+}, { timestamps: true });
 
 module.exports = Produit = mongoose.model('produit', produitSchema); 

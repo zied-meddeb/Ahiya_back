@@ -1,10 +1,10 @@
 const verificateurService = require('../services/VerificateurService');
-
+const verifyToken = require('../config/middleware');
 const express = require('express');
 const VerficateurController = express.Router();
 
 
-VerficateurController.get(`/`, async (req, res) => {
+VerficateurController.get(`/`,verifyToken, async (req, res) => {
     try {
         const verificateurs = await verificateurService.getAllVerificateurs();
         res.status(200).json(verificateurs);
@@ -13,7 +13,7 @@ VerficateurController.get(`/`, async (req, res) => {
     }
 }
 );
-VerficateurController.get(`/:id`, async (req, res) => {
+VerficateurController.get(`/:id`,verifyToken, async (req, res) => {
     try {
         const verificateur = await verificateurService.getVerificateurById(req.params.id);
         res.status(200).json(verificateur);
@@ -22,16 +22,8 @@ VerficateurController.get(`/:id`, async (req, res) => {
     }
 }
 );
-VerficateurController.post(`/`, async (req, res) => {
-    try {
-        const verificateur = await verificateurService.createVerificateur(req.body);
-        res.status(201).json(verificateur);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
-);
-VerficateurController.put(`/:id`, async (req, res) => {
+
+VerficateurController.put(`/:id`,verifyToken, async (req, res) => {
     try {
         const verificateur = await verificateurService.updateVerificateur(req.params.id, req.body);
         res.status(200).json(verificateur);
@@ -40,7 +32,7 @@ VerficateurController.put(`/:id`, async (req, res) => {
     }
 }
 );
-VerficateurController.delete(`/:id`, async (req, res) => {
+VerficateurController.delete(`/:id`,verifyToken, async (req, res) => {
     try {
         const verificateur = await verificateurService.deleteVerificateur(req.params.id);
         res.status(200).json(verificateur);
@@ -71,6 +63,25 @@ VerficateurController.post(`/auth/register`, async (req, res) => {
     }
 }
 );
+
+
+
+VerficateurController.post(`/:id/verifier/:verifId`,verifyToken, async (req, res) => {
+    try {
+        const produit = await verificateurService.verifierProduit(req.params.id, req.params.verifId);
+        res.status(200).json(produit);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+VerficateurController.post(`/:id/rejeter/:verifId`,verifyToken, async (req, res) => {
+    try {
+        const produit = await verificateurService.rejeterProduit(req.params.id, req.params.verifId);
+        res.status(200).json(produit);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 
 module.exports = VerficateurController;

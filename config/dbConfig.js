@@ -1,6 +1,6 @@
-
+require('dotenv').config();
 const mongoose = require("mongoose");
-const uri = "mongodb+srv://AhiyaDB:gUM0UoXXmYFjpTIn@ahiya.ccupua1.mongodb.net/?retryWrites=true&w=majority&appName=Ahiya";
+const uri = `mongodb+srv://${process.env.DB_NAME}:${process.env.DB_SECRET}@ahiya.ccupua1.mongodb.net/?retryWrites=true&w=majority&appName=Ahiya`;
 
 const connectDB= async () => {
   try {

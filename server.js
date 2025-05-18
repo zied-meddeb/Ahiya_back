@@ -19,6 +19,9 @@ app.use('/api/verificateur', verificateurController);
 const fournisseurController = require('./controllers/FournisseurController');
 app.use('/api/fournisseur', fournisseurController);
 
+const promotionController = require('./controllers/PromotionController');
+app.use('/api/promotion', promotionController);
+
 
 const mongo=require('./config/dbConfig');
 mongo();

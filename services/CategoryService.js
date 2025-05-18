@@ -6,7 +6,7 @@ const categoryService = {
             const categories = await Category.find();
             return categories;
         } catch (error) {
-            throw new Error('Error fetching categories: ' + error.message);
+            throw new Error( error.message);
         }
     },
 
@@ -18,7 +18,7 @@ const categoryService = {
             }
             return category;
         } catch (error) {
-            throw new Error('Error fetching category: ' + error.message);
+            throw new Error( error.message);
         }
     },
 
@@ -28,7 +28,7 @@ const categoryService = {
             await category.save();
             return category;
         } catch (error) {
-            throw new Error('Error creating category: ' + error.message);
+            throw new Error( error.message);
         }
     },
 }

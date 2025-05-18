@@ -1,4 +1,5 @@
 const Verificateur = require('../entities/Verificateur');
+const token= require('../config/token');
 
 const verificateurService = {
     getAllVerificateurs: async () => {
@@ -6,7 +7,7 @@ const verificateurService = {
             const verificateurs = await Verificateur.find();
             return verificateurs;
         } catch (error) {
-            throw new Error('Error fetching verificateurs: ' + error.message);
+            throw new Error( error.message);
         }
     },
     getVerificateurById: async (id) => {
@@ -17,16 +18,21 @@ const verificateurService = {
             }
             return verificateur;
         } catch (error) {
-            throw new Error('Error fetching verificateur: ' + error.message);
+            throw new Error(error.message);
         }
     },
     createVerificateur: async (verificateurData) => {
         try {
+            const existingVerificateur = await Verificateur.findOne({ email: verificateurData.email });
+            if (existingVerificateur) {
+                throw new Error('Verificateur with this email already exists');
+            }
             const verificateur = new Verificateur(verificateurData);
             await verificateur.save();
-            return verificateur;
+            const jwtToken = token(verificateur);
+            return {user:verificateur, token: jwtToken};
         } catch (error) {
-            throw new Error('Error creating verificateur: ' + error.message);
+            throw new Error(error.message);
         }
     },
     updateVerificateur: async (id, verificateurData) => {
@@ -37,7 +43,7 @@ const verificateurService = {
             }
             return verificateur;
         } catch (error) {
-            throw new Error('Error updating verificateur: ' + error.message);
+            throw new Error( error.message);
         }
     },
     deleteVerificateur: async (id) => {
@@ -48,7 +54,7 @@ const verificateurService = {
             }
             return verificateur;
         } catch (error) {
-            throw new Error('Error deleting verificateur: ' + error.message);
+            throw new Error(error.message);
         }
     },
     loginVerificateur: async (email, password) => {
@@ -57,9 +63,13 @@ const verificateurService = {
             if (!verificateur) {
                 throw new Error('Verificateur not found');
             }
-            return verificateur;
+            const jwtToken = token(verificateur);
+            return {
+                user:verificateur,
+                token: jwtToken
+            };
         } catch (error) {
-            throw new Error('Error logging in verificateur: ' + error.message);
+            throw new Error( error.message);
         }
     },
     changePassword: async (id, newPassword) => {
@@ -70,9 +80,45 @@ const verificateurService = {
             }
             return verificateur;
         } catch (error) {
-            throw new Error('Error changing password: ' + error.message);
+            throw new Error( error.message);
         }
-    }
+    },
+     verifierProduit: async (id,verifId) => {
+            try {
+                const produit = await Produit.findById(id);
+                if (!produit) {
+                    throw new Error('Produit not found');
+                }
+                const verificateur = await Verificateur.findById(verifId);
+                if (!verificateur) {
+                    throw new Error('Verificateur not found');
+                }
+                produit.verified= true;
+                produit.checked_by= verifId;
+                await produit.save();
+                return produit;
+            } catch (error) {
+                throw new Error( error.message);
+            }
+        },
+        rejeterProduit: async (id,verifId) => {
+            try {
+                const produit = await Produit.findById(id);
+                if (!produit) {
+                    throw new Error('Produit not found');
+                }
+                const verificateur = await Verificateur.findById(verifId);
+                if (!verificateur) {
+                    throw new Error('Verificateur not found');
+                }
+                produit.verified= false;
+                produit.checked_by= verifId;
+                await produit.save();
+                return produit;
+            } catch (error) {
+                throw new Error( error.message);
+            }
+        },
 
 }
 module.exports = verificateurService;

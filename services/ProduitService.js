@@ -9,7 +9,7 @@ const produitService = {
             const produits = await Produit.find();
             return produits;
         } catch (error) {
-            throw new Error('Error fetching produits: ' + error.message);
+            throw new Error( error.message);
         }
     },
 
@@ -21,7 +21,7 @@ const produitService = {
             }
             return produit;
         } catch (error) {
-            throw new Error('Error fetching produit: ' + error.message);
+            throw new Error( error.message);
         }
     },
 
@@ -31,7 +31,7 @@ const produitService = {
             await produit.save();
             return produit;
         } catch (error) {
-            throw new Error('Error creating produit: ' + error.message);
+            throw new Error( error.message);
         }
     },
 
@@ -43,7 +43,7 @@ const produitService = {
             }
             return produit;
         } catch (error) {
-            throw new Error('Error updating produit: ' + error.message);
+            throw new Error( error.message);
         }
     },
 
@@ -55,46 +55,10 @@ const produitService = {
             }
             return produit;
         } catch (error) {
-            throw new Error('Error deleting produit: ' + error.message);
+            throw new Error( error.message);
         }
     },
 
-    verifierProduit: async (id,verifId) => {
-        try {
-            const produit = await Produit.findById(id);
-            if (!produit) {
-                throw new Error('Produit not found');
-            }
-            const verificateur = await Verificateur.findById(verifId);
-            if (!verificateur) {
-                throw new Error('Verificateur not found');
-            }
-            produit.verified= true;
-            produit.checked_by= verifId;
-            await produit.save();
-            return produit;
-        } catch (error) {
-            throw new Error('Error verifying produit: ' + error.message);
-        }
-    },
-    rejeterProduit: async (id,verifId) => {
-        try {
-            const produit = await Produit.findById(id);
-            if (!produit) {
-                throw new Error('Produit not found');
-            }
-            const verificateur = await Verificateur.findById(verifId);
-            if (!verificateur) {
-                throw new Error('Verificateur not found');
-            }
-            produit.verified= false;
-            produit.checked_by= verifId;
-            await produit.save();
-            return produit;
-        } catch (error) {
-            throw new Error('Error rejecting produit: ' + error.message);
-        }
-    },
      searchByCriteria: async (criteria = {}) => {
     try {
         const query = {};
@@ -147,7 +111,7 @@ const produitService = {
         
         return produits;
     } catch (error) {
-        throw new Error('Error searching produits: ' + error.message);
+        throw new Error( error.message);
     }
 }
 
