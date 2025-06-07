@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const port=3000;
+const port=3100;
 
 app.use(express.json());
 app.listen(port, () => {
@@ -19,8 +19,17 @@ app.use('/api/verificateur', verificateurController);
 const fournisseurController = require('./controllers/FournisseurController');
 app.use('/api/fournisseur', fournisseurController);
 
+const userController = require('./controllers/UserController');
+app.use('/api/user', userController);
+
+
 const promotionController = require('./controllers/PromotionController');
 app.use('/api/promotion', promotionController);
+
+const favorisController = require('./controllers/FavorisController');
+app.use('/api/favoris', favorisController);
+
+
 
 
 const mongo=require('./config/dbConfig');
