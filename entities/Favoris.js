@@ -3,12 +3,12 @@ const Schema = mongoose.Schema;
 const favorisSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
-        ref: 'User',
+        ref: 'user',
         required: true
     },
     produitId: {
         type: Schema.Types.ObjectId,
-        ref: 'Produit',
+        ref: 'produit',
         required: true
     }
 }, { timestamps: true });

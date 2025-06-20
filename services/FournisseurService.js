@@ -120,6 +120,38 @@ verifyEmail: async (email, code) => {
                 throw new Error( error.message);
             }
         },
+        // Update fournisseur metrics
+ updateFournisseurMetrics:async(fournisseurId)=> {
+    const productCount = await Product.countDocuments({ 
+        fournisseur: fournisseurId 
+    });
     
+    const products = await Product.find({ fournisseur: fournisseurId });
+    const totalViews = products.reduce((sum, p) => sum + (p.views || 0), 0);
+    const ctr = productCount > 0 ? totalViews / productCount : 0;
+    
+    return await Fournisseur.findByIdAndUpdate(
+        fournisseurId,
+        {
+            'performanceMetrics.totalProductsListed': productCount,
+            'performanceMetrics.clickThroughRate': ctr
+        },
+        { new: true }
+    );
+},
+
+ getFournisseurWithStats:async(fournisseurId)=> {
+    const fournisseur = await Fournisseur.findById(fournisseurId);
+    const products = await Product.countDocuments({ fournisseur: fournisseurId });
+    
+    return {
+        ...fournisseur.toObject(),
+        stats: {
+            productCount: products
+        }
+    };
+},
+
+  
 }
 module.exports = fournisseurService;

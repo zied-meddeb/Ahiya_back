@@ -1,36 +1,136 @@
 const Category = require('../entities/Category');
+const { Types } = require('mongoose');
+const ServiceError = require('../bean/ErrorResponse');
+
 
 const categoryService = {
     getAllCategories: async () => {
         try {
             const categories = await Category.find();
-            return categories;
+            
+            if (!categories || categories.length === 0) {
+                throw new ServiceError('No categories found', 404);
+            }
+            
+            return {
+                success: true,
+                data: categories,
+                count: categories.length
+            };
         } catch (error) {
-            throw new Error( error.message);
+            if (error instanceof ServiceError) throw error;
+            throw new ServiceError(`Failed to fetch categories: ${error.message}`, 500);
         }
     },
 
     getCategoryById: async (id) => {
         try {
+            if (!Types.ObjectId.isValid(id)) {
+                throw new ServiceError('Invalid Category ID format', 400);
+            }
+            
             const category = await Category.findById(id);
             if (!category) {
-                throw new Error('Category not found');
+                throw new ServiceError('Category not found', 404);
             }
-            return category;
+            
+            return {
+                success: true,
+                data: category
+            };
         } catch (error) {
-            throw new Error( error.message);
+            if (error instanceof ServiceError) throw error;
+            throw new ServiceError(`Failed to fetch category: ${error.message}`, 500);
         }
     },
 
     createCategory: async (categoryData) => {
         try {
+            if (!categoryData.nom) {
+                throw new ServiceError('Category name is required', 400);
+            }
+            
+            // Check if category already exists
+            const existingCategory = await Category.findOne({ nom: categoryData.nom });
+            if (existingCategory) {
+                throw new ServiceError('Category with this name already exists', 409);
+            }
+            
             const category = new Category(categoryData);
             await category.save();
-            return category;
+            
+            return {
+                success: true,
+                statusCode: 201,
+                message: 'Category created successfully',
+                data: category
+            };
         } catch (error) {
-            throw new Error( error.message);
+            if (error instanceof ServiceError) throw error;
+            throw new ServiceError(`Category creation failed: ${error.message}`, 500);
         }
     },
-}
+
+    updateCategory: async (id, categoryData) => {
+        try {
+            if (!Types.ObjectId.isValid(id)) {
+                throw new ServiceError('Invalid Category ID format', 400);
+            }
+            
+            if (categoryData.nom) {
+                // Check if new name already exists for another category
+                const existingCategory = await Category.findOne({ 
+                    nom: categoryData.nom, 
+                    _id: { $ne: id } 
+                });
+                
+                if (existingCategory) {
+                    throw new ServiceError('Category with this name already exists', 409);
+                }
+            }
+            
+            const category = await Category.findByIdAndUpdate(id, categoryData, { 
+                new: true,
+                runValidators: true 
+            });
+            
+            if (!category) {
+                throw new ServiceError('Category not found', 404);
+            }
+            
+            return {
+                success: true,
+                message: 'Category updated successfully',
+                data: category
+            };
+        } catch (error) {
+            if (error instanceof ServiceError) throw error;
+            throw new ServiceError(`Category update failed: ${error.message}`, 500);
+        }
+    },
+
+    deleteCategory: async (id) => {
+        try {
+            if (!Types.ObjectId.isValid(id)) {
+                throw new ServiceError('Invalid Category ID format', 400);
+            }
+            
+            const category = await Category.findByIdAndDelete(id);
+            
+            if (!category) {
+                throw new ServiceError('Category not found', 404);
+            }
+            
+            return {
+                success: true,
+                message: 'Category deleted successfully',
+                data: { id: category._id, name: category.nom }
+            };
+        } catch (error) {
+            if (error instanceof ServiceError) throw error;
+            throw new ServiceError(`Category deletion failed: ${error.message}`, 500);
+        }
+    }
+};
 
 module.exports = categoryService;

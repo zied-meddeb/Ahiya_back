@@ -60,7 +60,22 @@ const produitSchema = new Schema({
     checked_by: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'verificateur',
-    }
+    },
+    tags: [{
+    type: String
+    }],
+    views: {
+        type: Number,
+        default: 0
+    },
+    clicks: {
+        type: Number,
+        default: 0
+    },
+    popularityScore: {
+        type: Number,
+        default: 0
+    },
 
    
 }, { timestamps: true });

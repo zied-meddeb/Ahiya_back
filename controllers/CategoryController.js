@@ -3,52 +3,80 @@ const express = require('express');
 const CategoryController = express.Router();
 const verifyToken = require('../config/middleware');
 
+const handleResponse = (res, serviceResponse, successStatus = 200) => {
+    if (serviceResponse.success) {
+        res.status(serviceResponse.statusCode || successStatus).json({
+            success: true,
+            message: serviceResponse.message,
+            data: serviceResponse.data,
+            ...(serviceResponse.count !== undefined && { count: serviceResponse.count })
+        });
+    } else {
+        res.status(serviceResponse.statusCode || 500).json({
+            success: false,
+            message: serviceResponse.message
+        });
+    }
+};
 
-CategoryController.get(`/`, async (req, res) => {
-    try {
-        const categories = await CategoryService.getAllCategories();
-        res.status(200).json(categories);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
-);
-CategoryController.get(`/:id`, async (req, res) => {
-    try {
-        const category = await CategoryService.getCategoryById(req.params.id);
-        res.status(200).json(category);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
-);
+const handleError = (res, error) => {
+    const statusCode = error.statusCode || 500;
+    res.status(statusCode).json({
+        success: false,
+        message: error.message || 'An unexpected error occurred'
+    });
+};
 
-CategoryController.post(`/`,verifyToken, async (req, res) => {
+CategoryController.get('/', async (req, res) => {
     try {
-        const category = await CategoryService.createCategory(req.body);
-        res.status(201).json(category);
+        const response = await CategoryService.getAllCategories();
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
-CategoryController.put(`/:id`,verifyToken, async (req, res) => {
+});
+
+CategoryController.get('/:id', async (req, res) => {
     try {
-        const category = await CategoryService.updateCategory(req.params.id, req.body);
-        res.status(200).json(category);
+        const response = await CategoryService.getCategoryById(req.params.id);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
-CategoryController.delete(`/:id`,verifyToken, async (req, res) => {
+});
+
+CategoryController.post('/', verifyToken, async (req, res) => {
     try {
-        const category = await CategoryService.deleteCategory(req.params.id);
-        res.status(200).json(category);
+        if (!req.body.nom) {
+            return handleError(res, { 
+                statusCode: 400, 
+                message: 'Category name is required' 
+            });
+        }
+        
+        const response = await CategoryService.createCategory(req.body);
+        handleResponse(res, response, 201);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
+
+CategoryController.put('/:id', verifyToken, async (req, res) => {
+    try {
+        const response = await CategoryService.updateCategory(req.params.id, req.body);
+        handleResponse(res, response);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
+
+CategoryController.delete('/:id', verifyToken, async (req, res) => {
+    try {
+        const response = await CategoryService.deleteCategory(req.params.id);
+        handleResponse(res, response);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
 
 module.exports = CategoryController;

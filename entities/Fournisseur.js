@@ -47,7 +47,29 @@ const fournisseurSchema = new Schema({
         type: Boolean,
         default: false
     },
-    verificationCode: { type: String }
+    verificationCode: { type: String },
+
+    storeInfo: {
+    website: String,
+    logoUrl: String,
+    description: String,
+    socialMedia: {
+        facebook: String,
+        instagram: String,
+        twitter: String
+    }
+    },
+    performanceMetrics: {
+    totalProductsListed: {
+        type: Number,
+        default: 0
+    },
+    clickThroughRate: {
+        type: Number,
+        default: 0
+    }
+    },
+
     
 
 }, { timestamps: true });

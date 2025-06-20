@@ -29,6 +29,9 @@ app.use('/api/promotion', promotionController);
 const favorisController = require('./controllers/FavorisController');
 app.use('/api/favoris', favorisController);
 
+const RecommController = require('./controllers/RecommController');
+app.use('/api/recommendation', RecommController);
+
 
 
 

@@ -75,6 +75,23 @@ FournisseurController.post(`/auth/verify`, async (req, res) => {
     }
 }
 );
+FournisseurController.put(`/metrics/:id`, verifyToken, async (req, res) => {
+    try {
+        const fournisseur = await fournisseurService.updateFournisseurMetrics(req.params.id);
+        res.status(200).json(fournisseur);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+FournisseurController.get(`/stats/:id`, verifyToken, async (req, res) => {
+    try {
+        const fournisseur = await fournisseurService.getFournisseurWithStats(req.params.id);
+        res.status(200).json(fournisseur);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
 
 
 module.exports = FournisseurController;

@@ -24,9 +24,37 @@ const userSchema = new Schema({
         type: Boolean,
         default: false
     },
-    verificationCode: { type: String }
+    verificationCode: { type: String },
+
+    favoriteCategories: [{
+        type: Schema.Types.ObjectId,
+        ref: 'category'
+    }],
+    
+    lastViewedProducts: [{
+        product: {
+            type: Schema.Types.ObjectId,
+            ref: 'produit'
+        },
+        viewedAt: {
+            type: Date,
+            default: Date.now
+        }
+    }],
+    searchHistory: [{
+        query: String,
+        searchedAt: {
+            type: Date,
+            default: Date.now
+        }
+        }]
     
 
 }, { timestamps: true });
+
+userSchema.index(
+  { "createdAt": 1 },
+  { expireAfterSeconds: 3600, partialFilterExpression: { isVerified: false } }
+);
 
 module.exports = User = mongoose.model('user', userSchema);
