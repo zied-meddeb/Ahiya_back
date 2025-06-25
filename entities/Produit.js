@@ -35,11 +35,6 @@ const produitSchema = new Schema({
         type: String, 
         
     }, 
-    status: {
-        type: String,       
-        enum: ['disponible', 'indisponible'],
-        default: 'disponible'
-    },
     verified: {
         type: Boolean, 
         default: false
@@ -71,12 +66,7 @@ const produitSchema = new Schema({
     clicks: {
         type: Number,
         default: 0
-    },
-    popularityScore: {
-        type: Number,
-        default: 0
-    },
-
+    }
    
 }, { timestamps: true });
 

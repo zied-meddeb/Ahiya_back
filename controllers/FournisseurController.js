@@ -3,95 +3,89 @@ const express = require('express');
 const FournisseurController = express.Router();
 const verifyToken = require('../config/middleware');
 
-FournisseurController.get(`/`,verifyToken, async (req, res) => {
+const { handleResponse, handleError } = require('../utils/responseHandler');
+
+FournisseurController.get(`/`, verifyToken, async (req, res) => {
     try {
-        const fournisseurs = await fournisseurService.getAllFournisseurs();
-        res.status(200).json(fournisseurs);
+        const response = await fournisseurService.getAllFournisseurs();
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
-FournisseurController.get(`/:id`,verifyToken, async (req, res) => {
+});
+
+FournisseurController.get(`/:id`, verifyToken, async (req, res) => {
     try {
-        const fournisseur = await fournisseurService.getFournisseurById(req.params.id);
-        res.status(200).json(fournisseur);
+        const response = await fournisseurService.getFournisseurById(req.params.id);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
+
 FournisseurController.post(`/`, async (req, res) => {
     try {
-        const fournisseur = await fournisseurService.createFournisseur(req.body);
-        res.status(201).json(fournisseur);
+        const response = await fournisseurService.createFournisseur(req.body);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
+
 FournisseurController.put(`/:id`, verifyToken, async (req, res) => {
     try {
-        const fournisseur = await fournisseurService.updateFournisseur(req.params.id, req.body);
-        res.status(200).json(fournisseur);
+        const response = await fournisseurService.updateFournisseur(req.params.id, req.body);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
-FournisseurController.delete(`/:id`,verifyToken, async (req, res) => {
+});
+
+FournisseurController.delete(`/:id`, verifyToken, async (req, res) => {
     try {
-        const fournisseur = await fournisseurService.deleteFournisseur(req.params.id);
-        res.status(200).json(fournisseur);
+        const response = await fournisseurService.deleteFournisseur(req.params.id);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
+
 FournisseurController.post(`/auth/login`, async (req, res) => {
     try {
         const { email, password } = req.body;
-        const fournisseur = await fournisseurService.loginFournisseur(email, password);
-        if (!fournisseur) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-        res.status(200).json(fournisseur);
+        const response = await fournisseurService.loginFournisseur(email, password);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
 
 FournisseurController.post(`/auth/verify`, async (req, res) => {
     try {
         const { email, password } = req.body;
-        const fournisseur = await fournisseurService.verifyFournisseur(email, password);
-        if (!fournisseur) {
-            return res.status(401).json({ message: 'Invalid credentials' });
-        }
-        res.status(200).json(fournisseur);
+        const response = await fournisseurService.verifyFournisseur(email, password);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
+
 FournisseurController.put(`/metrics/:id`, verifyToken, async (req, res) => {
     try {
-        const fournisseur = await fournisseurService.updateFournisseurMetrics(req.params.id);
-        res.status(200).json(fournisseur);
+        const response = await fournisseurService.updateFournisseurMetrics(req.params.id);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
 });
 
 FournisseurController.get(`/stats/:id`, verifyToken, async (req, res) => {
     try {
-        const fournisseur = await fournisseurService.getFournisseurWithStats(req.params.id);
-        res.status(200).json(fournisseur);
+        const response = await fournisseurService.getFournisseurWithStats(req.params.id);
+        handleResponse(res, response);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
 });
-
 
 module.exports = FournisseurController;

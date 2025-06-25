@@ -16,10 +16,6 @@ const categorySchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'category'
     },
-    isFeatured: {
-        type: Boolean,
-        default: false
-    },
     displayOrder: {
         type: Number,
         default: 0

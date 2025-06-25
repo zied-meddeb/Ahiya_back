@@ -3,85 +3,82 @@ const verifyToken = require('../config/middleware');
 const express = require('express');
 const VerficateurController = express.Router();
 
+const { handleResponse, handleError } = require('../utils/responseHandler');
 
-VerficateurController.get(`/`,verifyToken, async (req, res) => {
+VerficateurController.get(`/`, verifyToken, async (req, res) => {
     try {
         const verificateurs = await verificateurService.getAllVerificateurs();
-        res.status(200).json(verificateurs);
+        handleResponse(res, verificateurs);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
-VerficateurController.get(`/:id`,verifyToken, async (req, res) => {
+});
+
+VerficateurController.get(`/:id`, verifyToken, async (req, res) => {
     try {
         const verificateur = await verificateurService.getVerificateurById(req.params.id);
-        res.status(200).json(verificateur);
+        handleResponse(res, verificateur);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
 
-VerficateurController.put(`/:id`,verifyToken, async (req, res) => {
+VerficateurController.put(`/:id`, verifyToken, async (req, res) => {
     try {
         const verificateur = await verificateurService.updateVerificateur(req.params.id, req.body);
-        res.status(200).json(verificateur);
+        handleResponse(res, verificateur);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
-VerficateurController.delete(`/:id`,verifyToken, async (req, res) => {
+});
+
+VerficateurController.delete(`/:id`, verifyToken, async (req, res) => {
     try {
         const verificateur = await verificateurService.deleteVerificateur(req.params.id);
-        res.status(200).json(verificateur);
+        handleResponse(res, verificateur);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
+
 VerficateurController.post(`/auth/login`, async (req, res) => {
     try {
         const { email, password } = req.body;
         const verificateur = await verificateurService.loginVerificateur(email, password);
         if (!verificateur) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return handleError(res, new Error('Invalid credentials'));
         }
-        res.status(200).json(verificateur);
+        handleResponse(res, verificateur);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
+
 VerficateurController.post(`/auth/register`, async (req, res) => {
     try {
         const verificateur = await verificateurService.createVerificateur(req.body);
-        res.status(201).json(verificateur);
+        handleResponse(res, verificateur);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
-}
-);
+});
 
-
-
-VerficateurController.post(`/:id/verifier/:verifId`,verifyToken, async (req, res) => {
+VerficateurController.post(`/:id/verifier/:verifId`, verifyToken, async (req, res) => {
     try {
         const produit = await verificateurService.verifierProduit(req.params.id, req.params.verifId);
-        res.status(200).json(produit);
+        handleResponse(res, produit);
     } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-});
-VerficateurController.post(`/:id/rejeter/:verifId`,verifyToken, async (req, res) => {
-    try {
-        const produit = await verificateurService.rejeterProduit(req.params.id, req.params.verifId);
-        res.status(200).json(produit);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+        handleError(res, error);
     }
 });
 
+VerficateurController.post(`/:id/rejeter/:verifId`, verifyToken, async (req, res) => {
+    try {
+        const produit = await verificateurService.rejeterProduit(req.params.id, req.params.verifId);
+        handleResponse(res, produit);
+    } catch (error) {
+        handleError(res, error);
+    }
+});
 
 module.exports = VerficateurController;

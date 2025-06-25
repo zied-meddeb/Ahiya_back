@@ -3,29 +3,8 @@ const express = require('express');
 const ProduitController = express.Router();
 const verifyToken = require('../config/middleware');
 
-const handleResponse = (res, serviceResponse, successStatus = 200) => {
-    if (serviceResponse.success) {
-        res.status(serviceResponse.statusCode || successStatus).json({
-            success: true,
-            message: serviceResponse.message,
-            data: serviceResponse.data,
-            ...(serviceResponse.count && { count: serviceResponse.count })
-        });
-    } else {
-        res.status(serviceResponse.statusCode || 500).json({
-            success: false,
-            message: serviceResponse.message
-        });
-    }
-};
+const { handleResponse, handleError } = require('../utils/responseHandler');
 
-const handleError = (res, error) => {
-    const statusCode = error.statusCode || 500;
-    res.status(statusCode).json({
-        success: false,
-        message: error.message || 'An unexpected error occurred'
-    });
-};
 
 ProduitController.get('/', async (req, res) => {
     try {
