@@ -71,10 +71,7 @@ export const produitService = {
 
     createProduit: async (produitData: Partial<IProduit>): Promise<ProduitResponse> => {
         try {
-            if (!produitData.nom || !produitData.prix || !produitData.category || !produitData.fournisseur) {
-                throw new ServiceError('Name, price, category and supplier are required', 400);
-            }
-
+            
             const categoryExists = await Category.findById(produitData.category);
             if (!categoryExists) {
                 throw new ServiceError('Category not found', 404);
