@@ -61,6 +61,24 @@ FournisseurController.post(`/auth/login`, async (req: Request, res: Response) =>
 });
 
 
+FournisseurController.post('/auth/verify', async (req: Request, res: Response) => {
+    try {
+        const { email, code } = req.body;
+        
+        if (!email || !code) {
+            return handleError(res, { 
+                statusCode: 400, 
+                message: 'Email and verification code are required' 
+            });
+        }
+        
+        const response = await fournisseurService.verifyEmail(email, code);
+        handleResponse(res, response);
+    } catch (error:any) {
+        handleError(res, error);
+    }
+});
+
 
 
 

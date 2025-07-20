@@ -1,5 +1,5 @@
 import { IPromotion,Promotion } from '../entities/Promotion';
-import { ServiceError } from '../bean/ErrorResponse';
+import { ServiceError } from '../utils/ErrorResponse';
 
 interface PromotionResponse {
     success: boolean;

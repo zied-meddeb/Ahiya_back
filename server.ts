@@ -8,13 +8,8 @@ import promotionController from './controllers/PromotionController';
 import favorisController from './controllers/FavorisController';
 import connectDB from './config/dbConfig';
 import dotenv from 'dotenv';
-
-dotenv.config();
-
-import './config/cloudinary';
-
 const app: Application = express();
-const port = 3100;
+dotenv.config()
 
 app.use(express.json());
 
@@ -28,7 +23,6 @@ app.use('/api/favoris', favorisController);
 
 connectDB();
 
-
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+app.listen(process.env.PORT, () => {
+    console.log(`Server is running on http://localhost:${process.env.PORT}`);
 });

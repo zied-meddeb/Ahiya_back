@@ -1,6 +1,6 @@
 import {  Types } from 'mongoose';
 import { Category,ICategory } from '../entities/Category';
-import { ServiceError } from '../bean/ErrorResponse';
+import { ServiceError } from '../utils/ErrorResponse';
 
 interface CategoryResponse {
     success: boolean;

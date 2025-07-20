@@ -48,13 +48,6 @@ const fournisseurSchema = new Schema<IFournisseur>({
     type: String,
     required: true,
     minlength: [8, 'Mot de passe doit contenir au moins 8 caractères'],
-    maxlength: [20, 'Mot de passe doit contenir au plus 20 caractères'],
-    validate: {
-      validator: function(v: string) {
-        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-])[A-Za-z\d@$!%*?&_\-]{8,}$/.test(v);
-      },
-      message: 'Mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial'
-    }
   },
   telephone: {
     type: String,

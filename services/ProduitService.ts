@@ -2,7 +2,7 @@ import { Types } from 'mongoose';
 import { IProduit,Produit } from '../entities/Produit';
 import { ICategory,Category } from '../entities/Category';
 import { IFournisseur,Fournisseur } from '../entities/Fournisseur';
-import { ServiceError } from '../bean/ErrorResponse';
+import { ServiceError } from '../utils/ErrorResponse';
 
 import { Document } from 'mongoose';
 

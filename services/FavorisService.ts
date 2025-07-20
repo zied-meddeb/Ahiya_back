@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { IFavoris,Favoris } from '../entities/Favoris';
-import { ServiceError } from '../bean/ErrorResponse';
+import { ServiceError } from '../utils/ErrorResponse';
 import { IProduit } from '../entities/Produit';
 
 interface FavorisResponse {

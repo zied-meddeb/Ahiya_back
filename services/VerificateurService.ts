@@ -1,7 +1,7 @@
 import { IVerificateur, Verificateur } from '../entities/Verificateur';
 import { createToken } from '../middleware/token';
 import { Types } from 'mongoose';
-import { ServiceError } from '../bean/ErrorResponse';
+import { ServiceError } from '../utils/ErrorResponse';
 
 interface VerificateurResponse {
     success: boolean;
