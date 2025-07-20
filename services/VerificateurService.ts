@@ -1,5 +1,5 @@
 import { IVerificateur, Verificateur } from '../entities/Verificateur';
-import { createToken } from '../config/token';
+import { createToken } from '../middleware/token';
 import { Types } from 'mongoose';
 import { ServiceError } from '../bean/ErrorResponse';
 

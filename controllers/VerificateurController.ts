@@ -1,6 +1,6 @@
 import express,{ Request, Response, Router } from 'express';
 import verificateurService from '../services/VerificateurService';
-import {verifyToken} from '../config/middleware';
+import {verifyToken} from '../middleware/middleware';
 import { handleResponse, handleError } from '../utils/responseHandler';
 
 const VerficateurController: Router = express.Router();

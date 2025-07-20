@@ -2,9 +2,9 @@ import { IUser, User } from '../entities/User';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 
-const bcrypt = require('bcrypt');
+const bcrypt = import('bcrypt');
 import { UserResponse } from '../bean/UserResponse';
-import { createToken } from '../config/token';
+import { createToken } from '../middleware/token';
 import dotenv from 'dotenv';
 import { Types } from 'mongoose';
 import { ServiceError } from '../bean/ErrorResponse';

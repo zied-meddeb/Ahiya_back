@@ -1,6 +1,6 @@
 import express,{ Request, Response, Router } from 'express';
 import UserService from '../services/UserService';
-import {verifyToken} from '../config/middleware';
+import {verifyToken} from '../middleware/middleware';
 import crypto from 'crypto';
 import { handleResponse, handleError } from '../utils/responseHandler';
 

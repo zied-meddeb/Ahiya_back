@@ -1,6 +1,6 @@
 import express,{ Request, Response, Router } from 'express';
 import {fournisseurService} from '../services/FournisseurService';
-import {verifyToken} from '../config/middleware';
+import {verifyToken} from '../middleware/middleware';
 import { handleResponse, handleError } from '../utils/responseHandler';
 
 const FournisseurController: Router = express.Router();

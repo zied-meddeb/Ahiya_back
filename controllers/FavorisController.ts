@@ -1,6 +1,6 @@
 import express,{ Request, Response, Router } from 'express';
 import {FavorisService} from '../services/FavorisService';
-import { verifyToken } from '../config/middleware';
+import { verifyToken } from '../middleware/middleware';
 import { handleResponse, handleError } from '../utils/responseHandler';
 
 const FavorisRouter: Router = express.Router();

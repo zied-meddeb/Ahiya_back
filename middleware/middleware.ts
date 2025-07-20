@@ -1,10 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
-const jwt = require('jsonwebtoken');
+const jwt = import ('jsonwebtoken');
 
 interface JwtPayload {
     id: string;
     username: string;
     email: string;
+    role: string;
     iat?: number;
     exp?: number;
 }

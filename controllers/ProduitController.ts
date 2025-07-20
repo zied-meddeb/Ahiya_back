@@ -1,6 +1,6 @@
 import express,{ Request, Response, Router } from 'express';
 import {produitService} from '../services/ProduitService';
-import {verifyToken} from '../config/middleware';
+import {verifyToken} from '../middleware/middleware';
 import { handleResponse, handleError } from '../utils/responseHandler';
 
 const ProduitController: Router = express.Router();

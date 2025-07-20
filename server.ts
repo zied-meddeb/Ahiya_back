@@ -1,5 +1,4 @@
 import express, { Application } from 'express';
-
 import categoryController from './controllers/CategoryController';
 import produitController from './controllers/ProduitController';
 import verificateurController from './controllers/VerificateurController';
@@ -8,6 +7,11 @@ import userController from './controllers/UserController';
 import promotionController from './controllers/PromotionController';
 import favorisController from './controllers/FavorisController';
 import connectDB from './config/dbConfig';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+import './config/cloudinary';
 
 const app: Application = express();
 const port = 3100;
@@ -23,6 +27,7 @@ app.use('/api/promotion', promotionController);
 app.use('/api/favoris', favorisController);
 
 connectDB();
+
 
 app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);

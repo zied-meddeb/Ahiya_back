@@ -61,5 +61,29 @@ export const promotionService = {
         } catch (error:any) {
             throw new ServiceError(error.message, 500);
         }
+    },
+
+    changeOffreStatus: async (id: string, statut: string): Promise<PromotionResponse> => {
+        try {
+            const promotion = await Promotion.findByIdAndUpdate(id, { statut }, { new: true });
+            if (!promotion) {
+                throw new ServiceError('Promotion not found', 404);
+            } 
+            return {success:true, data: promotion };
+        } catch (error:any) {
+            throw new ServiceError(error.message, 500);
+        }
+    },
+
+    getPromotionsByFournisseur: async (fournisseurId: string): Promise<PromotionResponse> => {
+        try {
+            const promotions = await Promotion.find({ 'produits.fournisseur': fournisseurId });
+            return {success:true, data: promotions };
+        } catch (error:any) {
+            throw new ServiceError(error.message, 500);
+        }
     }
+
 };
+
+
