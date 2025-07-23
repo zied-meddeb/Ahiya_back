@@ -9,7 +9,7 @@ import { Document } from 'mongoose';
 interface ProduitResponse {
     success: boolean;
     message?: string;
-    data?: IProduit | IProduit[] | Document | Document[];
+    data?: IProduit | IProduit[] | Document | Document[] ;
     count?: number;
 }
 
@@ -88,7 +88,7 @@ export const produitService = {
             return { 
                 success: true, 
                 message: 'Product created successfully',
-                data: produit 
+                data: produit
             };
         } catch (error:any) {
             if (error instanceof ServiceError) throw error;
@@ -410,3 +410,5 @@ export const produitService = {
         }
     }
 };
+
+export default produitService;
