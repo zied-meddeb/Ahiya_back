@@ -60,7 +60,7 @@ export const verificateurService = {
 
       const verificateur = new Verificateur(verificateurData);
       await verificateur.save();
-      const jwtToken = await createToken(verificateur);
+      const jwtToken = createToken(verificateur);
 
       return {
         success: true,
@@ -132,7 +132,7 @@ export const verificateurService = {
         throw new ServiceError("Verificateur not found", 404);
       }
 
-      const jwtToken = await createToken(verificateur);
+      const jwtToken = createToken(verificateur);
       return {
         success: true,
         data: {
