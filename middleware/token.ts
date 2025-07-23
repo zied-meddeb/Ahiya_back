@@ -1,14 +1,12 @@
-const jwt = import('jsonwebtoken');
+import jwt from "jsonwebtoken";
+export const createToken = (user: any): string => {
+  const payload = {
+    id: user._id,
+    username: user.nom,
+    email: user.email,
+    role: user.role,
+  };
 
-
-export const createToken = async (user:any): Promise<string> => {
-    const payload = {
-        id: user._id,
-        username: user.nom,
-        email: user.email,
-        role: user.role,
-    };
-
-    const secret = process.env.JWT_SECRET as string;
-    return (await jwt).sign(payload, secret, { expiresIn: '7d' });
+  const secret = process.env.JWT_SECRET as string;
+  return jwt.sign(payload, secret, { expiresIn: "7d" });
 };

@@ -8,10 +8,12 @@ import promotionController from "./controllers/PromotionController";
 import favorisController from "./controllers/FavorisController";
 import connectDB from "./config/dbConfig";
 import dotenv from "dotenv";
+import cors from "cors";
 const app: Application = express();
 dotenv.config();
 
 app.use(express.json());
+app.use(cors({ origin: "*" }));
 
 app.use("/api/category", categoryController);
 app.use("/api/produit", produitController);

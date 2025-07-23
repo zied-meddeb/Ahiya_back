@@ -252,7 +252,7 @@ export const UserService = {
       }
 
       const userResponse = new UserResponse(user);
-      userResponse.token = await createToken(user);
+      userResponse.token = createToken(user);
 
       return {
         success: true,
