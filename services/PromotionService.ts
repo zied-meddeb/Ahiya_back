@@ -15,7 +15,18 @@ interface PromotionResponse {
 export const promotionService = {
   getAllPromotions: async (): Promise<PromotionResponse> => {
     try {
-      const promotions = await Promotion.find();
+      const promotions = await Promotion.find()
+        .populate({
+          path: "produits",
+          populate: [
+            {
+              path: "category",
+              model: "Category",
+            },
+          ],
+        })
+        .populate("Fournisseur");
+
       return { success: true, data: promotions };
     } catch (error: any) {
       throw new ServiceError(error.message, 500);
