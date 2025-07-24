@@ -1,7 +1,7 @@
-import multer from 'multer';
-import { Request, Response, NextFunction } from 'express';
-import { v2 as cloudinary } from 'cloudinary';
-import { Readable } from 'stream';
+import multer from "multer";
+import { Request, Response, NextFunction } from "express";
+import cloudinary from "../config/cloudinary";
+import { Readable } from "stream";
 
 // In-memory storage (no temp files saved locally)
 const storage = multer.memoryStorage();
@@ -21,10 +21,10 @@ export const uploadImageToCloudinary = (fieldName: string) => [
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const file = req.file;
-      if (!file) return res.status(400).json({ message: 'No file uploaded' });
-    
+      if (!file) return res.status(400).json({ message: "No file uploaded" });
+
       const stream = cloudinary.uploader.upload_stream(
-        { folder: 'ahaya_images' },
+        { folder: "ahaya_images" },
         (err, result) => {
           if (err) return res.status(500).json({ error: err.message });
 

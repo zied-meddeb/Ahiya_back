@@ -53,7 +53,19 @@ PromotionController.post(
       if (req.uploadedImageUrl) {
         req.body.afficheUrl = req.uploadedImageUrl;
       }
-
+      if (typeof req.body.produits === "string") {
+        try {
+          req.body.produits = JSON.parse(req.body.produits);
+        } catch (parseError) {
+          return res.status(400).json({
+            message: "Invalid JSON format for produits field",
+            error:
+              parseError instanceof Error
+                ? parseError.message
+                : String(parseError),
+          });
+        }
+      }
       const promotion = await promotionService.createPromotion(req.body);
       handleResponse(res, promotion);
     } catch (error: any) {
@@ -115,31 +127,25 @@ PromotionController.put(
       ["REJETE", "VALIDE"].includes(req.body.statut) &&
       userRole !== "verificateur"
     ) {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Access denied. Only verificateurs can change status to REJETE or VALIDE.",
-        });
+      return res.status(403).json({
+        message:
+          "Access denied. Only verificateurs can change status to REJETE or VALIDE.",
+      });
     }
 
     // only fournisseur can change status to AcTIVE (dans le cas ou le verificateur a validé la promotion et le fournisseur veut l'activer apres paiement)
     if (req.body.statut === "ACTIVE" && userRole !== "fournisseur") {
-      return res
-        .status(403)
-        .json({
-          message: "Access denied. Only fournisseur can activate promotions.",
-        });
+      return res.status(403).json({
+        message: "Access denied. Only fournisseur can activate promotions.",
+      });
     }
 
     // only fournisseur can set status to ATT_VER (dans le cas ou le verificateur a rejeté la promotion et le fournisseur veut la soumettre à nouveau)
     if (req.body.statut === "ATT_VER" && userRole !== "fournisseur") {
-      return res
-        .status(403)
-        .json({
-          message:
-            "Access denied. Only fournisseur can set promotions to ATT_VER.",
-        });
+      return res.status(403).json({
+        message:
+          "Access denied. Only fournisseur can set promotions to ATT_VER.",
+      });
     }
 
     try {
