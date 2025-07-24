@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from "express";
 import { promotionService } from "../services/PromotionService";
 import { verifyToken } from "../middleware/middleware";
 import { handleResponse, handleError } from "../utils/responseHandler";
-import { uploadImageToCloudinary } from "../middleware/upload";
+import { uploadPromotionWithProductImages } from "../middleware/upload";
 import { JwtPayload } from "jsonwebtoken";
 
 const PromotionController: Router = express.Router();
@@ -46,13 +46,13 @@ PromotionController.get(
 
 PromotionController.post(
   "/",
-
-  uploadImageToCloudinary("affiche"),
+  uploadPromotionWithProductImages(),
   async (req: any, res: any) => {
     try {
-      if (req.uploadedImageUrl) {
-        req.body.afficheUrl = req.uploadedImageUrl;
+      if (req.uploadedPromotionUrls && req.uploadedPromotionUrls.length > 0) {
+        req.body.afficheUrls = req.uploadedPromotionUrls;
       }
+
       if (typeof req.body.produits === "string") {
         try {
           req.body.produits = JSON.parse(req.body.produits);
@@ -66,6 +66,20 @@ PromotionController.post(
           });
         }
       }
+
+      if (
+        req.uploadedProductUrls &&
+        req.uploadedProductUrls.length > 0 &&
+        req.body.produits
+      ) {
+        req.body.produits = req.body.produits.map(
+          (produit: any, index: number) => ({
+            ...produit,
+            imageUrl: req.uploadedProductUrls[index] || produit.imageUrl,
+          })
+        );
+      }
+
       const promotion = await promotionService.createPromotion(req.body);
       handleResponse(res, promotion);
     } catch (error: any) {
