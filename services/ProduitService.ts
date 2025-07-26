@@ -96,6 +96,7 @@ export const produitService = {
         views: produitData.views || 0,
         tags: produitData.tags || [],
         checked_by: produitData.checked_by,
+        prix:produitData.prix,
       };
 
       const produit = new Produit(mappedProduitData);

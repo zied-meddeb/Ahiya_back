@@ -2,7 +2,7 @@ import express, { Request, Response, Router } from "express";
 import { promotionService } from "../services/PromotionService";
 import { verifyToken } from "../middleware/middleware";
 import { handleResponse, handleError } from "../utils/responseHandler";
-import { uploadPromotionWithProductImages } from "../middleware/upload";
+import { uploadPromotionWithProductImages, uploadPromotionWithProductImagesUpdate } from "../middleware/upload";
 import { JwtPayload } from "jsonwebtoken";
 
 const PromotionController: Router = express.Router();
@@ -28,7 +28,6 @@ PromotionController.get(`/:id`, async (req: Request, res: Response) => {
 // Get promotions by fournisseur ID
 PromotionController.get(
   "/fournisseur/:fournisseurId",
-  verifyToken,
   async (req: Request, res: Response) => {
     if (!req.params.fournisseurId) {
       return res.status(400).json({ message: "Fournisseur ID is required." });
@@ -46,7 +45,7 @@ PromotionController.get(
 
 PromotionController.post(
   "/",
-  uploadPromotionWithProductImages(),
+  uploadPromotionWithProductImagesUpdate(),
   async (req: any, res: any) => {
     try {
       if (req.uploadedPromotionUrls && req.uploadedPromotionUrls.length > 0) {
@@ -116,60 +115,86 @@ PromotionController.delete(
   }
 );
 
-PromotionController.put(
-  "/:id/changeStatus",
-  verifyToken,
-  async (req: Request & { user?: JwtPayload }, res: Response) => {
-    const userRole = req.user?.role;
-
-    if (!userRole) {
-      return res
-        .status(403)
-        .json({ message: "Access denied. User role not found." });
-    }
-    if (!req.body.statut) {
-      return res.status(400).json({ message: "Status is required." });
-    }
-    // check if status is valid
-    const validStatuses = ["ATT_VER", "REJETE", "VALIDE", "ACTIVE"];
-    if (!validStatuses.includes(req.body.statut)) {
-      return res.status(400).json({ message: "Invalid status." });
-    }
-
-    // only verificateur can change status to REJETE or VALIDE (dans le cas ou le fournisseur a soumis la promotion et le verificateur veut la rejeter ou la valider)
-    if (
-      ["REJETE", "VALIDE"].includes(req.body.statut) &&
-      userRole !== "verificateur"
-    ) {
-      return res.status(403).json({
-        message:
-          "Access denied. Only verificateurs can change status to REJETE or VALIDE.",
-      });
-    }
-
-    // only fournisseur can change status to AcTIVE (dans le cas ou le verificateur a validé la promotion et le fournisseur veut l'activer apres paiement)
-    if (req.body.statut === "ACTIVE" && userRole !== "fournisseur") {
-      return res.status(403).json({
-        message: "Access denied. Only fournisseur can activate promotions.",
-      });
-    }
-
-    // only fournisseur can set status to ATT_VER (dans le cas ou le verificateur a rejeté la promotion et le fournisseur veut la soumettre à nouveau)
-    if (req.body.statut === "ATT_VER" && userRole !== "fournisseur") {
-      return res.status(403).json({
-        message:
-          "Access denied. Only fournisseur can set promotions to ATT_VER.",
-      });
-    }
-
+PromotionController.post(
+  '/:id',
+  uploadPromotionWithProductImagesUpdate(), // Still use the upload middleware
+  async (req: any, res: any) => {
     try {
-      const promotion = await promotionService.changeOffreStatus(
-        req.params.id,
-        req.body.statut
-      );
-      handleResponse(res, promotion);
+      const promotionId = req.params.id;
+      req.body = req.body || {};
+
+      // Parse existingAfficheUrls first
+      let existingAfficheUrls: string[] = [];
+      if (req.body.existingAfficheUrls) {
+        try {
+          existingAfficheUrls = typeof req.body.existingAfficheUrls === 'string' 
+            ? JSON.parse(req.body.existingAfficheUrls) 
+            : req.body.existingAfficheUrls;
+        } catch (e) {
+          console.error('Error parsing existingAfficheUrls:', e);
+        }
+      }
+
+      // Combine existing and new affiche URLs
+      const newAfficheUrls = req.uploadedPromotionUrls || [];
+      const allAfficheUrls = [...existingAfficheUrls, ...newAfficheUrls];
+
+      // Validate we have at least one image (either existing or new)
+      if (allAfficheUrls.length === 0) {
+        return res.status(400).json({ 
+          message: 'At least one promotion image is required (either existing or new)' 
+        });
+      }
+
+      // Parse produits if it's a string
+      if (typeof req.body.produits === 'string') {
+        try {
+          req.body.produits = JSON.parse(req.body.produits);
+        } catch (parseError) {
+          return res.status(400).json({
+            message: 'Invalid JSON format for produits field',
+            error: parseError instanceof Error ? parseError.message : String(parseError),
+          });
+        }
+      }
+
+      // Handle product images if any were uploaded
+      if (req.uploadedProductUrls && req.uploadedProductUrls.length > 0) {
+        if (!req.body.produits) {
+          return res.status(400).json({ 
+            message: 'Product images uploaded but no products data provided' 
+          });
+        }
+        
+        const produits = Array.isArray(req.body.produits) 
+          ? req.body.produits 
+          : [req.body.produits];
+        
+        req.body.produits = produits.map((produit: any, index: number) => ({
+          ...produit,
+          imageUrl: req.uploadedProductUrls[index] || produit.imageUrl,
+        }));
+      }
+
+      // Prepare the update data
+      const updateData = {
+        ...req.body,
+        afficheUrls: allAfficheUrls, // Use the combined list
+        existingAfficheUrls, // Pass this separately for cleanup
+      };
+
+      const promotion = await promotionService.updatePromotion(promotionId, updateData);
+      
+      return res.status(200).json({
+        success: true,
+        data: promotion,
+      });
     } catch (error: any) {
-      handleError(res, error);
+      console.error('Error updating promotion:', error);
+      return res.status(error.status || 500).json({
+        success: false,
+        message: error.message || 'Failed to update promotion',
+      });
     }
   }
 );

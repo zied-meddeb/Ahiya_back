@@ -160,3 +160,86 @@ export const uploadPromotionWithProductImages = () => [
     }
   },
 ];
+
+
+export const uploadPromotionWithProductImagesUpdate = () => [
+  upload.fields([{ name: "affiches", maxCount: 10 }, { name: "productImages", maxCount: 10 }]),
+
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      // Initialize empty arrays if no files were uploaded
+      (req as any).uploadedPromotionUrls = [];
+      (req as any).uploadedProductUrls = [];
+
+      if (files) {
+        const uploadPromises: Promise<{
+          type: string;
+          url: string;
+          index?: number;
+        }>[] = [];
+
+        if (files.affiches) {
+          files.affiches.forEach((file, index) => {
+            uploadPromises.push(
+              new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                  { folder: "ahaya_images/promotions" },
+                  (err, result) => {
+                    if (err) reject(err);
+                    else resolve({
+                      type: "promotion",
+                      url: result?.secure_url || "",
+                      index,
+                    });
+                  }
+                );
+                bufferToStream(file.buffer).pipe(stream);
+              })
+            );
+          });
+        }
+
+        if (files.productImages) {
+          files.productImages.forEach((file, index) => {
+            uploadPromises.push(
+              new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                  { folder: "ahaya_images/products" },
+                  (err, result) => {
+                    if (err) reject(err);
+                    else resolve({
+                      type: "product",
+                      url: result?.secure_url || "",
+                      index,
+                    });
+                  }
+                );
+                bufferToStream(file.buffer).pipe(stream);
+              })
+            );
+          });
+        }
+
+        if (uploadPromises.length > 0) {
+          const uploadResults = await Promise.all(uploadPromises);
+          
+          (req as any).uploadedPromotionUrls = uploadResults
+            .filter((result) => result.type === "promotion")
+            .map((result) => result.url);
+
+          (req as any).uploadedProductUrls = uploadResults
+            .filter((result) => result.type === "product")
+            .map((result) => result.url);
+        }
+      }
+
+      next();
+    } catch (error: any) {
+      console.error('Upload middleware error:', error);
+      // Don't fail here - let the controller handle missing files
+      next();
+    }
+  },
+];

@@ -12,6 +12,7 @@ export interface IProduit extends Document {
   category: Schema.Types.ObjectId;
   fournisseur: Schema.Types.ObjectId;
   checked_by?: Schema.Types.ObjectId;
+  prix:number;
 }
 
 const produitSchema = new Schema<IProduit>({
@@ -43,6 +44,10 @@ const produitSchema = new Schema<IProduit>({
     type: Schema.Types.ObjectId,
     ref: 'Fournisseur',
     required: true
+  },
+  prix:{
+    type:Number,
+    required:true
   },
   checked_by: {
     type: Schema.Types.ObjectId,
