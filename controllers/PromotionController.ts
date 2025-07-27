@@ -2,7 +2,10 @@ import express, { Request, Response, Router } from "express";
 import { promotionService } from "../services/PromotionService";
 import { verifyToken } from "../middleware/middleware";
 import { handleResponse, handleError } from "../utils/responseHandler";
-import { uploadPromotionWithProductImages, uploadPromotionWithProductImagesUpdate } from "../middleware/upload";
+import {
+  uploadPromotionWithProductImages,
+  uploadPromotionWithProductImagesUpdate,
+} from "../middleware/upload";
 import { JwtPayload } from "jsonwebtoken";
 
 const PromotionController: Router = express.Router();
@@ -116,7 +119,7 @@ PromotionController.delete(
 );
 
 PromotionController.post(
-  '/:id',
+  "/:id",
   uploadPromotionWithProductImagesUpdate(), // Still use the upload middleware
   async (req: any, res: any) => {
     try {
@@ -127,11 +130,12 @@ PromotionController.post(
       let existingAfficheUrls: string[] = [];
       if (req.body.existingAfficheUrls) {
         try {
-          existingAfficheUrls = typeof req.body.existingAfficheUrls === 'string' 
-            ? JSON.parse(req.body.existingAfficheUrls) 
-            : req.body.existingAfficheUrls;
+          existingAfficheUrls =
+            typeof req.body.existingAfficheUrls === "string"
+              ? JSON.parse(req.body.existingAfficheUrls)
+              : req.body.existingAfficheUrls;
         } catch (e) {
-          console.error('Error parsing existingAfficheUrls:', e);
+          console.error("Error parsing existingAfficheUrls:", e);
         }
       }
 
@@ -139,21 +143,26 @@ PromotionController.post(
       const newAfficheUrls = req.uploadedPromotionUrls || [];
       const allAfficheUrls = [...existingAfficheUrls, ...newAfficheUrls];
 
+      const uniqueAfficheUrls = Array.from(new Set(allAfficheUrls));
       // Validate we have at least one image (either existing or new)
-      if (allAfficheUrls.length === 0) {
-        return res.status(400).json({ 
-          message: 'At least one promotion image is required (either existing or new)' 
+      if (uniqueAfficheUrls.length === 0) {
+        return res.status(400).json({
+          message:
+            "At least one promotion image is required (either existing or new)",
         });
       }
 
       // Parse produits if it's a string
-      if (typeof req.body.produits === 'string') {
+      if (typeof req.body.produits === "string") {
         try {
           req.body.produits = JSON.parse(req.body.produits);
         } catch (parseError) {
           return res.status(400).json({
-            message: 'Invalid JSON format for produits field',
-            error: parseError instanceof Error ? parseError.message : String(parseError),
+            message: "Invalid JSON format for produits field",
+            error:
+              parseError instanceof Error
+                ? parseError.message
+                : String(parseError),
           });
         }
       }
@@ -161,15 +170,15 @@ PromotionController.post(
       // Handle product images if any were uploaded
       if (req.uploadedProductUrls && req.uploadedProductUrls.length > 0) {
         if (!req.body.produits) {
-          return res.status(400).json({ 
-            message: 'Product images uploaded but no products data provided' 
+          return res.status(400).json({
+            message: "Product images uploaded but no products data provided",
           });
         }
-        
-        const produits = Array.isArray(req.body.produits) 
-          ? req.body.produits 
+
+        const produits = Array.isArray(req.body.produits)
+          ? req.body.produits
           : [req.body.produits];
-        
+
         req.body.produits = produits.map((produit: any, index: number) => ({
           ...produit,
           imageUrl: req.uploadedProductUrls[index] || produit.imageUrl,
@@ -179,21 +188,24 @@ PromotionController.post(
       // Prepare the update data
       const updateData = {
         ...req.body,
-        afficheUrls: allAfficheUrls, // Use the combined list
+        afficheUrls: uniqueAfficheUrls, // Use the combined list
         existingAfficheUrls, // Pass this separately for cleanup
       };
 
-      const promotion = await promotionService.updatePromotion(promotionId, updateData);
-      
+      const promotion = await promotionService.updatePromotion(
+        promotionId,
+        updateData
+      );
+
       return res.status(200).json({
         success: true,
         data: promotion,
       });
     } catch (error: any) {
-      console.error('Error updating promotion:', error);
+      console.error("Error updating promotion:", error);
       return res.status(error.status || 500).json({
         success: false,
-        message: error.message || 'Failed to update promotion',
+        message: error.message || "Failed to update promotion",
       });
     }
   }
