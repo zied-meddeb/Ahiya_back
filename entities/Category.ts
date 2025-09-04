@@ -1,12 +1,11 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface ICategory extends Document {
   nom: string;
   description?: string;
   imageUrl?: string;
-  displayOrder: number;
-  parentCategory?: Schema.Types.ObjectId;
-  hierarchy?: string;
+  parentCategories?: Types.ObjectId[];
+  hierarchies?: string[]; // multiple hierarchy paths
 }
 
 const categorySchema = new Schema<ICategory>(
@@ -18,54 +17,63 @@ const categorySchema = new Schema<ICategory>(
     },
     description: String,
     imageUrl: String,
-    displayOrder: {
-      type: Number,
-      default: 0,
-    },
-    parentCategory: {
-      type: Schema.Types.ObjectId,
-      ref: 'Category',
-      default: null,
-    },
-    hierarchy: {
-      type: String,
+    parentCategories: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'Category',
+        default: [],
+      },
+    ],
+    hierarchies: {
+      type: [String],
       index: true,
-      unique: true,
+      default: [],
     },
   },
   { timestamps: true }
 );
 
-// Virtual for child categories
+// Virtual for children (inverse relationship)
 categorySchema.virtual('children', {
   ref: 'Category',
   localField: '_id',
-  foreignField: 'parentCategory',
+  foreignField: 'parentCategories',
 });
 
-// Show virtuals when converting to JSON/objects
 categorySchema.set('toJSON', { virtuals: true });
 categorySchema.set('toObject', { virtuals: true });
 
 /**
- * Pre-save hook to compute the hierarchy path
- * Example result: clothes/men/shoes
+ * Pre-save hook to compute all hierarchy paths
+ * Example: ['clothes/homme/shoes', 'clothes/femme/shoes']
  */
 categorySchema.pre('save', async function (next) {
   const category = this as ICategory;
 
-  let path = category.nom.toLowerCase();
-  let parentId = category.parentCategory;
-
-  while (parentId) {
-    const parent = await Category.findById(parentId).select('nom parentCategory');
-    if (!parent) break;
-    const parentPath = parent.nom.toLowerCase();
-    path = `${parentPath}/${path}`;
-    parentId = parent.parentCategory;
+  // base case: no parent
+  if (!category.parentCategories || category.parentCategories.length === 0) {
+    category.hierarchies = [category.nom.toLowerCase()];
+    return next();
   }
 
-  category.hierarchy = path;
+  const hierarchies: string[] = [];
+
+  for (const parentId of category.parentCategories) {
+    let path = category.nom.toLowerCase();
+    let currentParentId = parentId;
+
+    while (currentParentId) {
+      const parent = await Category.findById(currentParentId).select('nom parentCategories');
+      if (!parent) break;
+      path = `${parent.nom.toLowerCase()}/${path}`;
+      // If parent has multiple parents, stop at one path (or recursively handle all branches if needed)
+      currentParentId = parent.parentCategories?.[0]!; // depth-first single path
+    }
+
+    hierarchies.push(path);
+  }
+
+  category.hierarchies = hierarchies;
   next();
 });
 

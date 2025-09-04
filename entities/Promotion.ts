@@ -12,7 +12,7 @@ export interface IPromotion extends Document {
   date_affiche: Date;
   produits?: Schema.Types.ObjectId[];
   statut: String;
-  titre:String;
+  titre: String;
 }
 
 const PromotionSchema = new Schema<IPromotion>(
@@ -31,12 +31,14 @@ const PromotionSchema = new Schema<IPromotion>(
     afficheUrls: {
       type: [String],
       required: true,
+      unique: true,
+      set: (v: string[]) => Array.from(new Set(v)),
       validate: {
         validator: (v: string[]) => v.length > 0,
         message: "At least one affiche URL is required",
       },
     },
-    titre:{
+    titre: {
       type: String,
       required: true,
     },
