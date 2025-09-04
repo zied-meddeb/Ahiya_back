@@ -18,16 +18,33 @@ export interface IPerformanceMetrics {
   clickThroughRate: number;
 }
 
+export interface IAddress {
+  _id?: string;
+  type: 'primary' | 'secondary' | 'warehouse' | 'office';
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 export interface IFournisseur extends Document {
   nom: string;
   email: string;
   password: string;
   telephone: string;
-  adresse: string;
+  addresses: IAddress[];
   isVerified: boolean;
   verificationCode?: string;
+  isOnboardingCompleted: boolean;
   storeInfo?: IStoreInfo;
   performanceMetrics?: IPerformanceMetrics;
+  role: 'fournisseur';
 }
 
 const fournisseurSchema = new Schema<IFournisseur>({
@@ -59,15 +76,56 @@ const fournisseurSchema = new Schema<IFournisseur>({
       message: 'Numéro de téléphone doit être 8 chiffres'
     }
   },
-  adresse: {
-    type: String,
-    required: true
-  },
+  
+  addresses: [{
+    type: {
+      type: String,
+      enum: ['primary', 'secondary', 'warehouse', 'office'],
+      required: true
+    },
+    street: {
+      type: String,
+      required: true
+    },
+    city: {
+      type: String,
+      required: true
+    },
+    state: {
+      type: String,
+      required: true
+    },
+    postalCode: {
+      type: String,
+      required: true
+    },
+    country: {
+      type: String,
+      required: true
+    },
+    isDefault: {
+      type: Boolean,
+      default: false
+    },
+    coordinates: {
+      latitude: Number,
+      longitude: Number
+    }
+  }],
   isVerified: {
     type: Boolean,
     default: false
   },
   verificationCode: String,
+  isOnboardingCompleted: {
+    type: Boolean,
+    default: false
+  },
+  role: {
+    type: String,
+    default: 'fournisseur',
+    enum: ['fournisseur']
+  },
   storeInfo: {
     website: String,
     logoUrl: String,

@@ -1,4 +1,4 @@
-import { IFournisseur, Fournisseur } from "../entities/Fournisseur";
+import { IFournisseur, Fournisseur, IAddress } from "../entities/Fournisseur";
 import * as nodemailer from "nodemailer";
 import crypto from "crypto";
 import { ServiceError } from "../utils/ErrorResponse";
@@ -39,8 +39,8 @@ export const fournisseurService = {
     userData: Partial<IFournisseur>
   ): Promise<FournisseurResponse> => {
     try {
-      if (!userData.email || !userData.password) {
-        throw new ServiceError("Email and password are required", 400);
+      if (!userData.email || !userData.password || !userData.nom || !userData.telephone) {
+        throw new ServiceError("Email, password, name, and telephone are required", 400);
       }
 
       const existingUser = await Fournisseur.findOne({ email: userData.email });
@@ -62,6 +62,7 @@ export const fournisseurService = {
         password: hashedPassword,
         isVerified: false,
         verificationCode,
+        addresses: userData.addresses || [], // Initialize with empty array if not provided
       });
 
       await user.save();
@@ -267,6 +268,172 @@ export const fournisseurService = {
       }
       return { success: true, data: fournisseur };
     } catch (error: any) {
+      throw new ServiceError(error.message, 500);
+    }
+  },
+
+  // Address management methods
+  addAddress: async (
+    fournisseurId: string,
+    addressData: IAddress
+  ): Promise<FournisseurResponse> => {
+    try {
+      const fournisseur = await Fournisseur.findById(fournisseurId);
+      if (!fournisseur) {
+        throw new ServiceError("Fournisseur not found", 404);
+      }
+
+      // If this is the first address or marked as default, set it as default
+      if (fournisseur.addresses.length === 0 || addressData.isDefault) {
+        // Remove default flag from other addresses
+        fournisseur.addresses.forEach(addr => addr.isDefault = false);
+        addressData.isDefault = true;
+      }
+
+      fournisseur.addresses.push(addressData);
+      await fournisseur.save();
+
+      return { success: true, data: fournisseur };
+    } catch (error: any) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError(error.message, 500);
+    }
+  },
+
+  updateAddress: async (
+    fournisseurId: string,
+    addressId: string,
+    addressData: Partial<IAddress>
+  ): Promise<FournisseurResponse> => {
+    try {
+      const fournisseur = await Fournisseur.findById(fournisseurId);
+      if (!fournisseur) {
+        throw new ServiceError("Fournisseur not found", 404);
+      }
+
+      const addressIndex = fournisseur.addresses.findIndex(
+        addr => addr._id?.toString() === addressId
+      );
+      
+      if (addressIndex === -1) {
+        throw new ServiceError("Address not found", 404);
+      }
+
+      // If setting as default, remove default from other addresses
+      if (addressData.isDefault) {
+        fournisseur.addresses.forEach(addr => addr.isDefault = false);
+      }
+
+      fournisseur.addresses[addressIndex] = {
+        ...fournisseur.addresses[addressIndex],
+        ...addressData
+      };
+
+      await fournisseur.save();
+      return { success: true, data: fournisseur };
+    } catch (error: any) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError(error.message, 500);
+    }
+  },
+
+  deleteAddress: async (
+    fournisseurId: string,
+    addressId: string
+  ): Promise<FournisseurResponse> => {
+    try {
+      const fournisseur = await Fournisseur.findById(fournisseurId);
+      if (!fournisseur) {
+        throw new ServiceError("Fournisseur not found", 404);
+      }
+
+      const addressIndex = fournisseur.addresses.findIndex(
+        addr => addr._id?.toString() === addressId
+      );
+      
+      if (addressIndex === -1) {
+        throw new ServiceError("Address not found", 404);
+      }
+
+      const wasDefault = fournisseur.addresses[addressIndex].isDefault;
+      fournisseur.addresses.splice(addressIndex, 1);
+
+      // If we deleted the default address, set the first remaining as default
+      if (wasDefault && fournisseur.addresses.length > 0) {
+        fournisseur.addresses[0].isDefault = true;
+      }
+
+      await fournisseur.save();
+      return { success: true, data: fournisseur };
+    } catch (error: any) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError(error.message, 500);
+    }
+  },
+
+  // Onboarding methods
+  completeOnboarding: async (
+    fournisseurId: string,
+    onboardingData: {
+      storeInfo?: any;
+      addresses?: IAddress[];
+      additionalInfo?: any;
+    }
+  ): Promise<FournisseurResponse> => {
+    try {
+      const fournisseur = await Fournisseur.findById(fournisseurId);
+      if (!fournisseur) {
+        throw new ServiceError("Fournisseur not found", 404);
+      }
+
+      // Update store info if provided
+      if (onboardingData.storeInfo) {
+        fournisseur.storeInfo = {
+          ...fournisseur.storeInfo,
+          ...onboardingData.storeInfo
+        };
+      }
+
+      // Add addresses if provided
+      if (onboardingData.addresses && onboardingData.addresses.length > 0) {
+        // Set first address as default if no default exists
+        if (onboardingData.addresses.length > 0 && !onboardingData.addresses.some(addr => addr.isDefault)) {
+          onboardingData.addresses[0].isDefault = true;
+        }
+        fournisseur.addresses = onboardingData.addresses;
+      }
+
+      // Mark onboarding as completed
+      fournisseur.isOnboardingCompleted = true;
+
+      await fournisseur.save();
+      return { success: true, data: fournisseur };
+    } catch (error: any) {
+      if (error instanceof ServiceError) throw error;
+      throw new ServiceError(error.message, 500);
+    }
+  },
+
+  getOnboardingStatus: async (
+    fournisseurId: string
+  ): Promise<FournisseurResponse> => {
+    try {
+      const fournisseur = await Fournisseur.findById(fournisseurId);
+      if (!fournisseur) {
+        throw new ServiceError("Fournisseur not found", 404);
+      }
+
+      return {
+        success: true,
+        data: {
+          isOnboardingCompleted: fournisseur.isOnboardingCompleted,
+          hasStoreInfo: !!fournisseur.storeInfo,
+          hasAddresses: fournisseur.addresses.length > 0,
+          addressesCount: fournisseur.addresses.length
+        }
+      };
+    } catch (error: any) {
+      if (error instanceof ServiceError) throw error;
       throw new ServiceError(error.message, 500);
     }
   },

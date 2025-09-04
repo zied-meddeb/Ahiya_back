@@ -33,3 +33,35 @@ export const verifyToken = (
     res.status(403).json({ message: "Invalid token." });
   }
 };
+
+export const verifyFournisseurRole = (
+  req: Request & { user?: JwtPayload },
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Access denied. No user found." });
+  }
+  
+  if (req.user.role !== 'fournisseur') {
+    return res.status(403).json({ message: "Access denied. Fournisseur role required." });
+  }
+  
+  next();
+};
+
+export const verifyUserRole = (
+  req: Request & { user?: JwtPayload },
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Access denied. No user found." });
+  }
+  
+  if (req.user.role !== 'user') {
+    return res.status(403).json({ message: "Access denied. User role required." });
+  }
+  
+  next();
+};

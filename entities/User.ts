@@ -19,6 +19,7 @@ export interface IUser extends Document {
   favoriteCategories: Schema.Types.ObjectId[];
   lastViewedProducts: ILastViewedProduct[];
   searchHistory: ISearchHistory[];
+  role: 'user';
 }
 
 const userSchema = new Schema<IUser>({
@@ -65,7 +66,12 @@ const userSchema = new Schema<IUser>({
       type: Date,
       default: Date.now
     }
-  }]
+  }],
+  role: {
+    type: String,
+    default: 'user',
+    enum: ['user']
+  }
 }, { timestamps: true });
 
 userSchema.index(

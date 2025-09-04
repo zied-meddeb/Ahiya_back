@@ -4,7 +4,7 @@ export const createToken = (user: any): string => {
     id: user._id,
     username: user.nom,
     email: user.email,
-    role: user.role,
+    role: user.role || 'fournisseur', // Default to fournisseur if not specified
   };
 
   const secret = process.env.JWT_SECRET as string;
