@@ -259,7 +259,7 @@ export const promotionService = {
     try {
       const promotions = await Promotion.find({
         Fournisseur: fournisseurId,
-      });
+      }).populate("produits");
       return { success: true, data: promotions };
     } catch (error: any) {
       throw new ServiceError(error.message, 500);

@@ -10,6 +10,7 @@ export interface IPromotion extends Document {
   date_debut: Date;
   date_fin: Date;
   date_affiche: Date;
+  date_affiche_fin: Date;
   produits?: Schema.Types.ObjectId[];
   statut: String;
   titre: String;
@@ -64,6 +65,10 @@ const PromotionSchema = new Schema<IPromotion>(
       required: true,
     },
     date_affiche: {
+      type: Date,
+      required: true,
+    },
+    date_affiche_fin: {
       type: Date,
       required: true,
     },
