@@ -82,6 +82,20 @@ PromotionController.post(
         );
       }
 
+      // Parse date fields to ensure they are Date objects
+      if (req.body.date_debut) {
+        req.body.date_debut = new Date(req.body.date_debut);
+      }
+      if (req.body.date_fin) {
+        req.body.date_fin = new Date(req.body.date_fin);
+      }
+      if (req.body.date_affiche) {
+        req.body.date_affiche = new Date(req.body.date_affiche);
+      }
+      if (req.body.date_affiche_fin) {
+        req.body.date_affiche_fin = new Date(req.body.date_affiche_fin);
+      }
+
       const promotion = await promotionService.createPromotion(req.body);
       handleResponse(res, promotion);
     } catch (error: any) {
@@ -183,6 +197,20 @@ PromotionController.post(
           ...produit,
           imageUrl: req.uploadedProductUrls[index] || produit.imageUrl,
         }));
+      }
+
+      // Parse date fields to ensure they are Date objects
+      if (req.body.date_debut) {
+        req.body.date_debut = new Date(req.body.date_debut);
+      }
+      if (req.body.date_fin) {
+        req.body.date_fin = new Date(req.body.date_fin);
+      }
+      if (req.body.date_affiche) {
+        req.body.date_affiche = new Date(req.body.date_affiche);
+      }
+      if (req.body.date_affiche_fin) {
+        req.body.date_affiche_fin = new Date(req.body.date_affiche_fin);
       }
 
       // Prepare the update data

@@ -6,6 +6,7 @@ import fournisseurController from "./controllers/FournisseurController";
 import userController from "./controllers/UserController";
 import promotionController from "./controllers/PromotionController";
 import favorisController from "./controllers/FavorisController";
+import catalogueController from "./controllers/CatalogueController";
 import connectDB from "./config/dbConfig";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -23,6 +24,7 @@ app.use("/api/fournisseur", fournisseurController);
 app.use("/api/user", userController);
 app.use("/api/promotion", promotionController);
 app.use("/api/favoris", favorisController);
+app.use("/api/catalogue", catalogueController);
 
 connectDB();
 
