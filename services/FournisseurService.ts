@@ -39,8 +39,16 @@ export const fournisseurService = {
     userData: Partial<IFournisseur>
   ): Promise<FournisseurResponse> => {
     try {
-      if (!userData.email || !userData.password || !userData.nom || !userData.telephone) {
-        throw new ServiceError("Email, password, name, and telephone are required", 400);
+      if (
+        !userData.email ||
+        !userData.password ||
+        !userData.nom ||
+        !userData.telephone
+      ) {
+        throw new ServiceError(
+          "Email, password, name, and telephone are required",
+          400
+        );
       }
 
       const existingUser = await Fournisseur.findOne({ email: userData.email });
@@ -106,6 +114,7 @@ export const fournisseurService = {
 
       user.isVerified = true;
       user.verificationCode = undefined;
+      user.isOnboardingCompleted = true;
       await user.save();
       const token = createToken(user);
 
@@ -286,7 +295,7 @@ export const fournisseurService = {
       // If this is the first address or marked as default, set it as default
       if (fournisseur.addresses.length === 0 || addressData.isDefault) {
         // Remove default flag from other addresses
-        fournisseur.addresses.forEach(addr => addr.isDefault = false);
+        fournisseur.addresses.forEach((addr) => (addr.isDefault = false));
         addressData.isDefault = true;
       }
 
@@ -312,21 +321,21 @@ export const fournisseurService = {
       }
 
       const addressIndex = fournisseur.addresses.findIndex(
-        addr => addr._id?.toString() === addressId
+        (addr) => addr._id?.toString() === addressId
       );
-      
+
       if (addressIndex === -1) {
         throw new ServiceError("Address not found", 404);
       }
 
       // If setting as default, remove default from other addresses
       if (addressData.isDefault) {
-        fournisseur.addresses.forEach(addr => addr.isDefault = false);
+        fournisseur.addresses.forEach((addr) => (addr.isDefault = false));
       }
 
       fournisseur.addresses[addressIndex] = {
         ...fournisseur.addresses[addressIndex],
-        ...addressData
+        ...addressData,
       };
 
       await fournisseur.save();
@@ -348,9 +357,9 @@ export const fournisseurService = {
       }
 
       const addressIndex = fournisseur.addresses.findIndex(
-        addr => addr._id?.toString() === addressId
+        (addr) => addr._id?.toString() === addressId
       );
-      
+
       if (addressIndex === -1) {
         throw new ServiceError("Address not found", 404);
       }
@@ -390,14 +399,17 @@ export const fournisseurService = {
       if (onboardingData.storeInfo) {
         fournisseur.storeInfo = {
           ...fournisseur.storeInfo,
-          ...onboardingData.storeInfo
+          ...onboardingData.storeInfo,
         };
       }
 
       // Add addresses if provided
       if (onboardingData.addresses && onboardingData.addresses.length > 0) {
         // Set first address as default if no default exists
-        if (onboardingData.addresses.length > 0 && !onboardingData.addresses.some(addr => addr.isDefault)) {
+        if (
+          onboardingData.addresses.length > 0 &&
+          !onboardingData.addresses.some((addr) => addr.isDefault)
+        ) {
           onboardingData.addresses[0].isDefault = true;
         }
         fournisseur.addresses = onboardingData.addresses;
@@ -429,8 +441,8 @@ export const fournisseurService = {
           isOnboardingCompleted: fournisseur.isOnboardingCompleted,
           hasStoreInfo: !!fournisseur.storeInfo,
           hasAddresses: fournisseur.addresses.length > 0,
-          addressesCount: fournisseur.addresses.length
-        }
+          addressesCount: fournisseur.addresses.length,
+        },
       };
     } catch (error: any) {
       if (error instanceof ServiceError) throw error;
