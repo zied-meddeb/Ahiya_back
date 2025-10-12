@@ -24,7 +24,7 @@ FournisseurController.get(
   async (req: Request, res: Response) => {
     try {
       const response = await fournisseurService.getFournisseurById(
-        req.user?.id
+        req.user?.id as string
       );
       handleResponse(res, response);
     } catch (error: any) {
