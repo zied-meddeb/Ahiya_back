@@ -18,7 +18,7 @@ export const promotionService = {
     try {
       const promotions = await Promotion.find()
         .populate({
-          path: "produits",
+          path: "produit",
           populate: [
             {
               path: "category",
@@ -36,7 +36,7 @@ export const promotionService = {
 
   getPromotionById: async (id: string): Promise<PromotionResponse> => {
     try {
-      const promotion = await Promotion.findById(id).populate("produits");
+      const promotion = await Promotion.findById(id).populate("produit");
       if (!promotion) {
         throw new ServiceError("Promotion not found", 404);
       }
@@ -50,35 +50,35 @@ export const promotionService = {
     promotionData: Partial<IPromotion>
   ): Promise<PromotionResponse> => {
     try {
-      const produitsData = promotionData.produits;
+      const produitsData = promotionData.produits || promotionData.produit;
+      
+      // Handle both array (for backward compatibility) and single product
+      const produitData = Array.isArray(produitsData) ? produitsData[0] : produitsData;
 
       const cleanPromotionData = { ...promotionData };
       delete cleanPromotionData.produits;
+      delete cleanPromotionData.produit;
 
       const promotion = new Promotion(cleanPromotionData);
-      promotion.produits = [];
 
-      if (produitsData && produitsData.length > 0) {
-        for (const produitData of produitsData) {
-          const createdProduitResponse = await produitService.createProduit(
-            produitData as unknown as IProduit
+      if (produitData) {
+        const createdProduitResponse = await produitService.createProduit(
+          produitData as unknown as IProduit
+        );
+        if (createdProduitResponse.success && createdProduitResponse.data) {
+          const createdProduit =
+            createdProduitResponse.data as mongoose.Document;
+          promotion.produit =
+            createdProduit._id as mongoose.Schema.Types.ObjectId;
+        } else {
+          throw new ServiceError(
+            "Failed to create product for promotion",
+            400
           );
-          if (createdProduitResponse.success && createdProduitResponse.data) {
-            const createdProduit =
-              createdProduitResponse.data as mongoose.Document;
-            promotion.produits.push(
-              createdProduit._id as mongoose.Schema.Types.ObjectId
-            );
-          } else {
-            throw new ServiceError(
-              "Failed to create product for promotion",
-              400
-            );
-          }
         }
       } else {
         throw new ServiceError(
-          "At least one product must be associated with the promotion",
+          "A product must be associated with the promotion",
           400
         );
       }
@@ -107,9 +107,13 @@ export const promotionService = {
           throw new ServiceError("Promotion not found", 404);
         }
 
-        const produitsData = promotionData.produits || [];
+        const produitsData = promotionData.produits || promotionData.produit;
+        // Handle both array (for backward compatibility) and single product
+        const produitData = Array.isArray(produitsData) ? produitsData[0] : produitsData;
+        
         const cleanPromotionData = { ...promotionData };
         delete cleanPromotionData.produits;
+        delete cleanPromotionData.produit;
         delete cleanPromotionData.existingAfficheUrls;
 
         // Merge existing and new affiche URLs
@@ -145,60 +149,51 @@ export const promotionService = {
           afficheUrls: allAfficheUrls,
         });
 
-        // Handle products
-        const newProductIds: mongoose.Schema.Types.ObjectId[] = [];
-
-        if (produitsData && produitsData.length > 0) {
-          // Create new products for all provided produitsData
-          for (const produitData of produitsData) {
-            const createdProduitResponse = await produitService.createProduit(
-              produitData as unknown as IProduit
-            );
-
-            if (createdProduitResponse.success && createdProduitResponse.data) {
-              const createdProduit =
-                createdProduitResponse.data as mongoose.Document;
-              newProductIds.push(
-                createdProduit._id as mongoose.Schema.Types.ObjectId
-              );
-            } else {
-              throw new ServiceError(
-                "Failed to create product for promotion",
-                400
-              );
-            }
-          }
-
-          // Delete old products that are no longer associated
-          const existingProductIds = (existingPromotion.produits ?? []).map(
-            (id) => id.toString()
+        // Handle product (single product now)
+        if (produitData) {
+          // Create new product
+          const createdProduitResponse = await produitService.createProduit(
+            produitData as unknown as IProduit
           );
-          for (const productId of existingProductIds) {
-            try {
-              const product = await Produit.findById(productId).session(
-                session
-              );
-              if (product?.imageUrl) {
-                const publicId = product.imageUrl
-                  .split("/")
-                  .pop()
-                  ?.split(".")[0];
-                if (publicId) {
-                  await cloudinary.uploader.destroy(
-                    `ahaya_images/products/${publicId}`
-                  );
-                }
-              }
-              await Produit.findByIdAndDelete(productId).session(session);
-            } catch (productError) {
-              console.error("Error deleting product:", productError);
-            }
-          }
 
-          existingPromotion.produits = newProductIds;
+          if (createdProduitResponse.success && createdProduitResponse.data) {
+            const createdProduit =
+              createdProduitResponse.data as mongoose.Document;
+            
+            // Delete old product if it exists
+            if (existingPromotion.produit) {
+              try {
+                const oldProductId = existingPromotion.produit.toString();
+                const product = await Produit.findById(oldProductId).session(
+                  session
+                );
+                if (product?.imageUrl) {
+                  const publicId = product.imageUrl
+                    .split("/")
+                    .pop()
+                    ?.split(".")[0];
+                  if (publicId) {
+                    await cloudinary.uploader.destroy(
+                      `ahaya_images/products/${publicId}`
+                    );
+                  }
+                }
+                await Produit.findByIdAndDelete(oldProductId).session(session);
+              } catch (productError) {
+                console.error("Error deleting product:", productError);
+              }
+            }
+
+            existingPromotion.produit = createdProduit._id as mongoose.Schema.Types.ObjectId;
+          } else {
+            throw new ServiceError(
+              "Failed to create product for promotion",
+              400
+            );
+          }
         } else {
           throw new ServiceError(
-            "At least one product must be associated with the promotion",
+            "A product must be associated with the promotion",
             400
           );
         }
@@ -259,7 +254,7 @@ export const promotionService = {
     try {
       const promotions = await Promotion.find({
         Fournisseur: fournisseurId,
-      }).populate("produits");
+      }).populate("produit");
       return { success: true, data: promotions };
     } catch (error: any) {
       throw new ServiceError(error.message, 500);
@@ -270,7 +265,7 @@ export const promotionService = {
     produitId: string
   ): Promise<PromotionResponse> => {
     try {
-      const promotions = await Promotion.find({ "produits._id": produitId });
+      const promotions = await Promotion.find({ produit: produitId });
       return { success: true, data: promotions };
     } catch (error: any) {
       throw new ServiceError(error.message, 500);
@@ -293,7 +288,7 @@ export const promotionService = {
 
       //find promotions containing those products
       const promotions = await Promotion.find({
-        produits: { $in: productIds },
+        produit: { $in: productIds },
       });
 
       return { success: true, data: promotions };

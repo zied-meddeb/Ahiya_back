@@ -74,7 +74,12 @@ PromotionController.post(
         req.uploadedProductUrls.length > 0 &&
         req.body.produits
       ) {
-        req.body.produits = req.body.produits.map(
+        // Handle single product (take first element if array, or use directly)
+        const produitsArray = Array.isArray(req.body.produits) 
+          ? req.body.produits 
+          : [req.body.produits];
+        
+        req.body.produits = produitsArray.map(
           (produit: any, index: number) => ({
             ...produit,
             imageUrl: req.uploadedProductUrls[index] || produit.imageUrl,
@@ -189,6 +194,7 @@ PromotionController.post(
           });
         }
 
+        // Handle single product (take first element if array, or use directly)
         const produits = Array.isArray(req.body.produits)
           ? req.body.produits
           : [req.body.produits];

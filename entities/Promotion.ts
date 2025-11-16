@@ -11,7 +11,7 @@ export interface IPromotion extends Document {
   date_fin: Date;
   date_affiche: Date;
   date_affiche_fin: Date;
-  produits?: Schema.Types.ObjectId[];
+  produit?: Schema.Types.ObjectId;
   statut: String;
   titre: String;
 }
@@ -72,12 +72,11 @@ const PromotionSchema = new Schema<IPromotion>(
       type: Date,
       required: true,
     },
-    produits: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Produit",
-      },
-    ],
+    produit: {
+      type: Schema.Types.ObjectId,
+      ref: "Produit",
+      required: true,
+    },
     statut: {
       type: String,
       enum: ["ATT_VER", "REJETE", "VALIDE", "ACTIVE"],
