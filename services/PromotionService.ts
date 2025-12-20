@@ -28,7 +28,106 @@ export const promotionService = {
         })
         .populate("Fournisseur");
 
-      return { success: true, data: promotions };
+      // Handle legacy promotions with produits array - populate the first product
+      const processedPromotions = await Promise.all(
+        promotions.map(async (promo: any) => {
+          const promoObj: any = promo.toObject ? promo.toObject() : promo;
+
+          // Check if produit is already populated (has category or nom field, not just _id)
+          const isProduitPopulated =
+            promoObj.produit &&
+            typeof promoObj.produit === "object" &&
+            promoObj.produit._id &&
+            (promoObj.produit.category ||
+              promoObj.produit.nom ||
+              promoObj.produit.description);
+
+          if (isProduitPopulated) {
+            // produit is already populated, return as is
+            return promoObj;
+          }
+
+          // If produit exists but is not populated (just an ID), populate it
+          if (promoObj.produit) {
+            let productId: string | null = null;
+
+            if (typeof promoObj.produit === "string") {
+              productId = promoObj.produit;
+            } else if (promoObj.produit._id) {
+              productId = promoObj.produit._id.toString();
+            } else if (promoObj.produit.toString) {
+              productId = promoObj.produit.toString();
+            }
+
+            if (productId) {
+              try {
+                const product = await Produit.findById(productId).populate({
+                  path: "category",
+                  model: "Category",
+                });
+
+                if (product) {
+                  promoObj.produit = product.toObject
+                    ? product.toObject()
+                    : product;
+                }
+              } catch (err) {
+                console.error(`Error populating product ${productId}:`, err);
+              }
+            }
+          }
+
+          // Handle legacy produits array (check raw document)
+          if (
+            !promoObj.produit ||
+            (!promoObj.produit.category && !promoObj.produit.nom)
+          ) {
+            const rawPromo: any = promo.toObject
+              ? promo.toObject({ getters: false, virtuals: false })
+              : promo;
+            if (
+              rawPromo.produits &&
+              Array.isArray(rawPromo.produits) &&
+              rawPromo.produits.length > 0
+            ) {
+              const firstProductId = rawPromo.produits[0];
+              let productId: string | null = null;
+
+              if (typeof firstProductId === "string") {
+                productId = firstProductId;
+              } else if (firstProductId._id) {
+                productId = firstProductId._id.toString();
+              } else if (firstProductId.toString) {
+                productId = firstProductId.toString();
+              }
+
+              if (productId) {
+                try {
+                  const product = await Produit.findById(productId).populate({
+                    path: "category",
+                    model: "Category",
+                  });
+
+                  if (product) {
+                    promoObj.produit = product.toObject
+                      ? product.toObject()
+                      : product;
+                  }
+                } catch (err) {
+                  console.error(
+                    `Error populating product from produits array ${productId}:`,
+                    err
+                  );
+                }
+              }
+            }
+          }
+
+          return promoObj;
+        })
+      );
+
+      return { success: true, data: processedPromotions };
     } catch (error: any) {
       throw new ServiceError(error.message, 500);
     }
@@ -36,7 +135,17 @@ export const promotionService = {
 
   getPromotionById: async (id: string): Promise<PromotionResponse> => {
     try {
-      const promotion = await Promotion.findById(id).populate("produit");
+      const promotion = await Promotion.findById(id)
+        .populate({
+          path: "produit",
+          populate: [
+            {
+              path: "category",
+              model: "Category",
+            },
+          ],
+        })
+        .populate("Fournisseur");
       if (!promotion) {
         throw new ServiceError("Promotion not found", 404);
       }
@@ -50,12 +159,15 @@ export const promotionService = {
     promotionData: Partial<IPromotion>
   ): Promise<PromotionResponse> => {
     try {
-      const produitsData = promotionData.produits || promotionData.produit;
-      
-      // Handle both array (for backward compatibility) and single product
-      const produitData = Array.isArray(produitsData) ? produitsData[0] : produitsData;
+      const promotionDataAny = promotionData as any;
+      const produitsData = promotionDataAny.produits || promotionData.produit;
 
-      const cleanPromotionData = { ...promotionData };
+      // Handle both array (for backward compatibility) and single product
+      const produitData = Array.isArray(produitsData)
+        ? produitsData[0]
+        : produitsData;
+
+      const cleanPromotionData: any = { ...promotionData };
       delete cleanPromotionData.produits;
       delete cleanPromotionData.produit;
 
@@ -71,10 +183,7 @@ export const promotionService = {
           promotion.produit =
             createdProduit._id as mongoose.Schema.Types.ObjectId;
         } else {
-          throw new ServiceError(
-            "Failed to create product for promotion",
-            400
-          );
+          throw new ServiceError("Failed to create product for promotion", 400);
         }
       } else {
         throw new ServiceError(
@@ -107,11 +216,14 @@ export const promotionService = {
           throw new ServiceError("Promotion not found", 404);
         }
 
-        const produitsData = promotionData.produits || promotionData.produit;
+        const promotionDataAny = promotionData as any;
+        const produitsData = promotionDataAny.produits || promotionData.produit;
         // Handle both array (for backward compatibility) and single product
-        const produitData = Array.isArray(produitsData) ? produitsData[0] : produitsData;
-        
-        const cleanPromotionData = { ...promotionData };
+        const produitData = Array.isArray(produitsData)
+          ? produitsData[0]
+          : produitsData;
+
+        const cleanPromotionData: any = { ...promotionData };
         delete cleanPromotionData.produits;
         delete cleanPromotionData.produit;
         delete cleanPromotionData.existingAfficheUrls;
@@ -159,7 +271,7 @@ export const promotionService = {
           if (createdProduitResponse.success && createdProduitResponse.data) {
             const createdProduit =
               createdProduitResponse.data as mongoose.Document;
-            
+
             // Delete old product if it exists
             if (existingPromotion.produit) {
               try {
@@ -184,7 +296,8 @@ export const promotionService = {
               }
             }
 
-            existingPromotion.produit = createdProduit._id as mongoose.Schema.Types.ObjectId;
+            existingPromotion.produit =
+              createdProduit._id as mongoose.Schema.Types.ObjectId;
           } else {
             throw new ServiceError(
               "Failed to create product for promotion",
